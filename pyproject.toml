@@ -1,7 +1,10 @@
 [project]
-name = "project"
+name = "ml-project"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.12"
-dependencies = []
+requires-python = ">=3.11,<3.12"
+dependencies = [
+    "ipykernel>=7.1.0",
+    "pandas>=2.3.3",
+]

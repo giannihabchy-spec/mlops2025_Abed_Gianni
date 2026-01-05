@@ -1,1 +1,3 @@
 src/mlproject/data/
+__pycache__/
+*.egg-info/

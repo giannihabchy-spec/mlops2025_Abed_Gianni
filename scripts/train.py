@@ -8,5 +8,5 @@ def main():
         print(f"- {k}: {v}")
 
 
-if _name_ == "_main_":
-    main()
+if __name__ == "__main__":
+    main()

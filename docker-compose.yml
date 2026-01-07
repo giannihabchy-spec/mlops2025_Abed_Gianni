@@ -1,0 +1,17 @@
+services:
+  train:
+    build: .
+    volumes:
+      - .:/app
+      - venv:/app/.venv
+    command: ["uv", "run", "train"]
+
+  inference:
+    build: .
+    volumes:
+      - .:/app
+      - venv:/app/.venv
+    command: ["uv", "run", "inference"]
+
+volumes:
+  venv:

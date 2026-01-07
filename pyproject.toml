@@ -24,3 +24,4 @@ where = ["src"]
 
 [project.scripts]
 train = "mlproject.train.trainer:run_training"
+inference = "mlproject.inference.runner:run_inference"

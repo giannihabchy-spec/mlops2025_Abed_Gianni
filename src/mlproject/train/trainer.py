@@ -177,7 +177,17 @@ def save_artifacts(cfg: TrainConfig, payload: Dict[str, object]) -> Dict[str, st
 
 
 def run_training(cfg: TrainConfig | None = None) -> Dict[str, str]:
+    import subprocess
+    import sys
+
     cfg = cfg or TrainConfig()
+
+    # 1) Preprocess raw -> clean
+    subprocess.run([sys.executable, "scripts/preprocess.py"], check=True)
+
+    # 2) Features clean -> features
+    subprocess.run([sys.executable, "scripts/feature_engineering.py"], check=True)
+
+    # 3) Train on generated features
     payload = train_and_select(cfg)
-    paths = save_artifacts(cfg, payload)
-    return paths
+    return save_artifacts(cfg, payload)

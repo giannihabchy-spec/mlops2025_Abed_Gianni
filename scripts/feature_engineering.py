@@ -1,66 +1,56 @@
+import argparse
 import pandas as pd
 
-from mlproject.features.basic_features import (
-    convert_datetime,
-    add_distance_km,
-    add_pickup_month,
-    add_pickup_hour,
-    add_pickup_weekday,
-    drop_large_distance,
+from mlproject.preprocess.filters import (
+    drop_missing_rows,
+    drop_duplicate_rows,
+    filter_trip_duration,
+    drop_same_location,
 )
 
-TRAIN_INPUT = "src/mlproject/data/train_clean.csv"
-TEST_INPUT = "src/mlproject/data/test_clean.csv"
+DEFAULT_TRAIN_INPUT_PATH = "src/mlproject/data/train.csv"
+DEFAULT_TEST_INPUT_PATH = "src/mlproject/data/test.csv"
 
-TRAIN_OUTPUT = "src/mlproject/data/train_features.csv"
-TEST_OUTPUT = "src/mlproject/data/test_features.csv"
+DEFAULT_TRAIN_OUTPUT_PATH = "src/mlproject/data/train_clean.csv"
+DEFAULT_TEST_OUTPUT_PATH = "src/mlproject/data/test_clean.csv"
 
-TRAIN_COLUMNS_TO_DROP = [
-    "pickup_datetime",
-    "dropoff_datetime",
-    "pickup_longitude",
-    "pickup_latitude",
-    "dropoff_longitude",
-    "dropoff_latitude",
-]
 
-TEST_COLUMNS_TO_DROP = [
-    "pickup_datetime",
-    "pickup_longitude",
-    "pickup_latitude",
-    "dropoff_longitude",
-    "dropoff_latitude",
-]
+def clean_train(data: pd.DataFrame) -> pd.DataFrame:
+    data = drop_missing_rows(data)
+    data = drop_duplicate_rows(data)
+    data = filter_trip_duration(data)   # train only
+    data = drop_same_location(data)
+    return data
 
-def engineer_features(df, is_train=True):
-    df = convert_datetime(df, ["pickup_datetime"])
-    df["store_and_fwd_flag"] = (df["store_and_fwd_flag"] == "Y").astype(int)
-    df = add_distance_km(df)
-    df = add_pickup_month(df)
-    df = add_pickup_hour(df)
-    df = add_pickup_weekday(df)
 
-    if is_train:
-        df = drop_large_distance(df, max_km=200)
-        df = df.drop(columns=TRAIN_COLUMNS_TO_DROP, errors="ignore")
-    else:
-        df = df.drop(columns=TEST_COLUMNS_TO_DROP, errors="ignore")
-
-    return df
+def clean_test(data: pd.DataFrame) -> pd.DataFrame:
+    data = drop_missing_rows(data)
+    data = drop_duplicate_rows(data)
+    data = drop_same_location(data)
+    return data
 
 
 def main():
-    train = pd.read_csv(TRAIN_INPUT)
-    test = pd.read_csv(TEST_INPUT)
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--train-in", default=DEFAULT_TRAIN_INPUT_PATH)
+    parser.add_argument("--test-in", default=DEFAULT_TEST_INPUT_PATH)
+    parser.add_argument("--train-out", default=DEFAULT_TRAIN_OUTPUT_PATH)
+    parser.add_argument("--test-out", default=DEFAULT_TEST_OUTPUT_PATH)
+    args = parser.parse_args()
 
-    train = engineer_features(train, is_train=True)
-    test = engineer_features(test, is_train=False)
+    train = pd.read_csv(args.train_in)
+    test = pd.read_csv(args.test_in)
 
-    train.to_csv(TRAIN_OUTPUT, index=False)
-    test.to_csv(TEST_OUTPUT, index=False)
+    train_clean = clean_train(train)
+    test_clean = clean_test(test)
 
-    print("Saved feature datasets")
+    train_clean.to_csv(args.train_out, index=False)
+    test_clean.to_csv(args.test_out, index=False)
+
+    print(f"Saved cleaned train to {args.train_out}")
+    print(f"Saved cleaned test  to {args.test_out}")
 
 
 if __name__ == "__main__":
     main()
+
